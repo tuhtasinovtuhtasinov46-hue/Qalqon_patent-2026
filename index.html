@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#eef3f1">
+    <title>Патент 2026 - тренажер</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="topbar" aria-label="Главная панель">
+        <div>
+          <p class="kicker">Telegram Mini App</p>
+          <h1>Патент 2026</h1>
+        </div>
+        <button class="icon-button" id="resetProgress" type="button" aria-label="Сбросить прогресс" title="Сбросить прогресс">↺</button>
+      </section>
+
+      <section class="summary-strip" aria-label="Прогресс">
+        <div>
+          <span id="trainedCount">0</span>
+          <small>изучено</small>
+        </div>
+        <div>
+          <span id="bestScore">0%</span>
+          <small>лучший экзамен</small>
+        </div>
+        <div>
+          <span id="mistakeCount">0</span>
+          <small>ошибок</small>
+        </div>
+      </section>
+
+      <nav class="tabbar" aria-label="Разделы">
+        <button class="tab active" data-view="home" type="button">Главная</button>
+        <button class="tab" data-view="train" type="button">Тренировка</button>
+        <button class="tab" data-view="mistakes" type="button">Ошибки</button>
+        <button class="tab" data-view="guide" type="button">Справка</button>
+      </nav>
+
+      <section id="view-home" class="view active">
+        <div class="exam-panel">
+          <div>
+            <p class="panel-label">Пробный экзамен</p>
+            <h2>22 задания: русский язык, история, закон</h2>
+            <p>Симуляция по структуре патента: 11 вопросов по русскому языку, 5 по истории России и 6 по основам законодательства РФ.</p>
+          </div>
+          <button class="primary-button" id="startExam" type="button">Начать экзамен</button>
+        </div>
+
+        <div class="module-grid" aria-label="Модули">
+          <button class="module-card" data-start-module="russian" type="button">
+            <span>Русский язык</span>
+            <strong id="russianProgress">0/0</strong>
+          </button>
+          <button class="module-card" data-start-module="history" type="button">
+            <span>История России</span>
+            <strong id="historyProgress">0/0</strong>
+          </button>
+          <button class="module-card" data-start-module="law" type="button">
+            <span>Законодательство РФ</span>
+            <strong id="lawProgress">0/0</strong>
+          </button>
+        </div>
+      </section>
+
+      <section id="view-train" class="view">
+        <div class="filter-row" role="group" aria-label="Выбор модуля">
+          <button class="chip active" data-module="all" type="button">Все</button>
+          <button class="chip" data-module="russian" type="button">Русский</button>
+          <button class="chip" data-module="history" type="button">История</button>
+          <button class="chip" data-module="law" type="button">Закон</button>
+        </div>
+        <div id="questionList" class="question-list"></div>
+      </section>
+
+      <section id="view-mistakes" class="view">
+        <div class="empty-state" id="mistakesEmpty">
+          <h2>Ошибок пока нет</h2>
+          <p>После тренировки здесь появятся вопросы, которые стоит повторить.</p>
+        </div>
+        <div id="mistakeList" class="question-list"></div>
+      </section>
+
+      <section id="view-guide" class="view">
+        <div class="guide-section">
+          <h2>Как устроен тренажер</h2>
+          <p>Материалы сгруппированы по трем частям комплексного экзамена для оформления патента: русский язык, история России и основы законодательства РФ.</p>
+          <p>В режиме экзамена приложение выбирает 22 задания и считает результат по каждому модулю. Для тренировки можно отвечать без таймера и сразу видеть объяснение.</p>
+        </div>
+        <div class="guide-section">
+          <h2>Проходной ориентир</h2>
+          <p>В учебном режиме используется ориентир: русский язык не менее 6 из 11, история не менее 2 из 5, законодательство не менее 3 из 6, всего не менее 11 из 22.</p>
+        </div>
+        <div class="guide-section note">
+          <h2>Важно</h2>
+          <p>Это авторский учебный тренажер, а не официальный банк заданий. Перед сдачей сверяйте правила, стоимость и список документов в своем экзаменационном центре.</p>
+        </div>
+      </section>
+
+      <section class="quiz-sheet" id="quizSheet" aria-live="polite" hidden>
+        <div class="quiz-header">
+          <button class="icon-button" id="closeQuiz" type="button" aria-label="Закрыть тест" title="Закрыть">×</button>
+          <div>
+            <p id="quizMode">Тренировка</p>
+            <h2 id="quizTitle">Вопрос</h2>
+          </div>
+          <span id="quizCounter">1/1</span>
+        </div>
+        <div class="progress-track"><span id="quizProgress"></span></div>
+        <article class="question-card">
+          <p class="module-badge" id="questionModule">Модуль</p>
+          <h3 id="questionText">Текст вопроса</h3>
+          <div id="answerOptions" class="answer-options"></div>
+          <div id="feedback" class="feedback" hidden></div>
+        </article>
+        <button class="primary-button sticky" id="nextQuestion" type="button" disabled>Далее</button>
+      </section>
+
+      <section class="result-sheet" id="resultSheet" hidden>
+        <div class="result-card">
+          <p class="panel-label">Результат</p>
+          <h2 id="resultTitle">Экзамен завершен</h2>
+          <div id="resultStats" class="result-stats"></div>
+          <button class="primary-button" id="backHome" type="button">На главную</button>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
