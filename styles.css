@@ -198,6 +198,17 @@ h3 {
   box-shadow: 0 10px 26px rgba(15, 139, 111, 0.24);
 }
 
+.secondary-button {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 900;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
 .primary-button:disabled {
   opacity: 0.48;
   cursor: default;
@@ -301,6 +312,7 @@ h3 {
   box-shadow: inset 0 0 0 1px #f3d7b5;
 }
 
+.registration-sheet,
 .quiz-sheet,
 .result-sheet {
   position: fixed;
@@ -310,6 +322,12 @@ h3 {
   margin: 0 auto;
   padding: max(16px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
   background: var(--bg);
+}
+
+.registration-sheet {
+  z-index: 20;
+  display: grid;
+  place-items: center;
 }
 
 .quiz-sheet {
@@ -324,9 +342,54 @@ h3 {
   flex-direction: column;
 }
 
+.registration-sheet[hidden],
 .quiz-sheet[hidden],
 .result-sheet[hidden] {
   display: none;
+}
+
+.registration-card {
+  width: 100%;
+  padding: 20px;
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.registration-card h2 {
+  margin-bottom: 18px;
+}
+
+.field-label {
+  display: block;
+  margin: 12px 0 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.registration-card input {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--text);
+  font: inherit;
+}
+
+.registration-card input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.form-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
 }
 
 .quiz-header {
@@ -441,6 +504,12 @@ h3 {
   margin: 18px 0;
 }
 
+.send-status {
+  margin: 0 0 14px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 .stat-line {
   display: flex;
   align-items: center;
@@ -476,5 +545,9 @@ h3 {
 
   .variant-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form-actions {
+    grid-template-columns: 1fr;
   }
 }

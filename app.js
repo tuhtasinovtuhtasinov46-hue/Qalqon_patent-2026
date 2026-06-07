@@ -319,6 +319,8 @@ const state = {
   view: "home",
   activeModule: "all",
   progress: loadProgress(),
+  profile: loadProfile(),
+  pendingExam: null,
   quiz: null
 };
 
@@ -331,6 +333,19 @@ function loadProgress() {
   } catch {
     return { learned: [], mistakes: [], bestExam: 0 };
   }
+}
+
+function loadProfile() {
+  try {
+    return JSON.parse(localStorage.getItem("patent2026Profile")) || null;
+  } catch {
+    return null;
+  }
+}
+
+function saveProfile(profile) {
+  state.profile = profile;
+  localStorage.setItem("patent2026Profile", JSON.stringify(profile));
 }
 
 function saveProgress() {
@@ -424,10 +439,11 @@ function renderMistakes() {
   `).join("");
 }
 
-function startQuiz(mode, selectedQuestions, title) {
+function startQuiz(mode, selectedQuestions, title, meta = {}) {
   state.quiz = {
     mode,
     title,
+    meta,
     questions: selectedQuestions,
     index: 0,
     answers: [],
@@ -438,11 +454,46 @@ function startQuiz(mode, selectedQuestions, title) {
   renderQuestion();
 }
 
+function openRegistration(pendingExam) {
+  state.pendingExam = pendingExam;
+  $("#registrationSheet").hidden = false;
+  $("#fullName").value = state.profile?.fullName || getTelegramFullName();
+  $("#phoneNumber").value = state.profile?.phoneNumber || "";
+  $("#fullName").focus();
+}
+
+function closeRegistration() {
+  $("#registrationSheet").hidden = true;
+  state.pendingExam = null;
+}
+
+function getTelegramFullName() {
+  const user = tg?.initDataUnsafe?.user;
+  if (!user) return "";
+  return [user.last_name, user.first_name, user.username ? `@${user.username}` : ""].filter(Boolean).join(" ");
+}
+
+function startExamVariant(variantNumber) {
+  const exam = {
+    variantNumber,
+    title: `Вариант ${variantNumber}`,
+    questions: pickExamQuestions(variantNumber)
+  };
+
+  if (!state.profile?.fullName || !state.profile?.phoneNumber) {
+    openRegistration(exam);
+    return;
+  }
+
+  startQuiz("exam", exam.questions, exam.title, { variantNumber });
+}
+
 function renderQuestion() {
   const quiz = state.quiz;
   const question = quiz.questions[quiz.index];
   const progress = ((quiz.index) / quiz.questions.length) * 100;
 
+  $("#quizSheet").scrollTop = 0;
   quiz.locked = false;
   $("#quizMode").textContent = quiz.mode === "exam" ? "Пробный экзамен" : "Тренировка";
   $("#quizTitle").textContent = quiz.title;
@@ -548,8 +599,39 @@ function finishQuiz() {
       <strong>${score}</strong>
     </div>
   `).join("");
+  sendExamReport({ quiz, correct, totals, percent, passed });
   $("#resultSheet").hidden = false;
   state.quiz = null;
+}
+
+function sendExamReport({ quiz, correct, totals, percent, passed }) {
+  const wrongTotal = totals.total - correct.total;
+  const report = {
+    type: "patent_test_result",
+    fullName: state.profile?.fullName || "",
+    phoneNumber: state.profile?.phoneNumber || "",
+    variant: quiz.meta?.variantNumber || quiz.title,
+    date: new Date().toLocaleString("ru-RU"),
+    correct: correct.total,
+    wrong: wrongTotal,
+    percent,
+    passed,
+    modules: {
+      russian: { correct: correct.russian, total: totals.russian },
+      history: { correct: correct.history, total: totals.history },
+      law: { correct: correct.law, total: totals.law }
+    }
+  };
+
+  localStorage.setItem("patent2026LastReport", JSON.stringify(report));
+
+  if (tg?.sendData) {
+    tg.sendData(JSON.stringify(report));
+    $("#sendStatus").textContent = "Отчет отправлен в Telegram-бота.";
+    return;
+  }
+
+  $("#sendStatus").textContent = "Отчет сохранен на устройстве. В Telegram он отправится, когда приложение будет открыто через бота.";
 }
 
 function startSingleQuestion(id) {
@@ -567,12 +649,12 @@ function bindEvents() {
     });
   });
 
-  $("#startExam").addEventListener("click", () => startQuiz("exam", pickExamQuestions(1), "Вариант 1"));
+  $("#startExam").addEventListener("click", () => startExamVariant(1));
   document.addEventListener("click", (event) => {
     const variantButton = event.target.closest("[data-variant]");
     if (variantButton) {
       const variantNumber = Number(variantButton.dataset.variant);
-      startQuiz("exam", pickExamQuestions(variantNumber), `Вариант ${variantNumber}`);
+      startExamVariant(variantNumber);
     }
   });
   $$("[data-start-module]").forEach((button) => {
@@ -591,6 +673,22 @@ function bindEvents() {
   });
 
   $("#nextQuestion").addEventListener("click", nextQuestion);
+  $("#registrationForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const fullName = $("#fullName").value.trim();
+    const phoneNumber = $("#phoneNumber").value.trim();
+    if (!fullName || !phoneNumber) return;
+
+    saveProfile({ fullName, phoneNumber });
+    $("#registrationSheet").hidden = true;
+
+    if (state.pendingExam) {
+      const exam = state.pendingExam;
+      state.pendingExam = null;
+      startQuiz("exam", exam.questions, exam.title, { variantNumber: exam.variantNumber });
+    }
+  });
+  $("#cancelRegistration").addEventListener("click", closeRegistration);
   $("#closeQuiz").addEventListener("click", () => {
     $("#quizSheet").hidden = true;
     state.quiz = null;

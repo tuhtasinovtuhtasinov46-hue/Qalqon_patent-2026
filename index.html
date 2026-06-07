@@ -105,6 +105,21 @@
         </div>
       </section>
 
+      <section class="registration-sheet" id="registrationSheet" hidden>
+        <form class="registration-card" id="registrationForm">
+          <p class="panel-label">Регистрация</p>
+          <h2>Перед тестированием</h2>
+          <label class="field-label" for="fullName">ФИО</label>
+          <input id="fullName" name="fullName" autocomplete="name" placeholder="Фамилия Имя Отчество" required>
+          <label class="field-label" for="phoneNumber">Телефон</label>
+          <input id="phoneNumber" name="phoneNumber" autocomplete="tel" inputmode="tel" placeholder="+7 900 000 00 00" required>
+          <div class="form-actions">
+            <button class="secondary-button" id="cancelRegistration" type="button">Отмена</button>
+            <button class="primary-button" type="submit">Продолжить</button>
+          </div>
+        </form>
+      </section>
+
       <section class="quiz-sheet" id="quizSheet" aria-live="polite" hidden>
         <div class="quiz-header">
           <button class="icon-button" id="closeQuiz" type="button" aria-label="Закрыть тест" title="Закрыть">×</button>
@@ -129,6 +144,7 @@
           <p class="panel-label">Результат</p>
           <h2 id="resultTitle">Экзамен завершен</h2>
           <div id="resultStats" class="result-stats"></div>
+          <p class="send-status" id="sendStatus"></p>
           <button class="primary-button" id="backHome" type="button">На главную</button>
         </div>
       </section>
