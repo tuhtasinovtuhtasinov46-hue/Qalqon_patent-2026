@@ -556,7 +556,7 @@ function nextQuestion() {
   finishQuiz();
 }
 
-function finishQuiz() {
+async function finishQuiz() {
   const quiz = state.quiz;
   $("#quizProgress").style.width = "100%";
   $("#quizSheet").hidden = true;
@@ -599,12 +599,12 @@ function finishQuiz() {
       <strong>${score}</strong>
     </div>
   `).join("");
-  sendExamReport({ quiz, correct, totals, percent, passed });
+  await sendExamReport({ quiz, correct, totals, percent, passed });
   $("#resultSheet").hidden = false;
   state.quiz = null;
 }
 
-function sendExamReport({ quiz, correct, totals, percent, passed }) {
+async function sendExamReport({ quiz, correct, totals, percent, passed }) {
   const wrongTotal = totals.total - correct.total;
   const report = {
     type: "patent_test_result",
@@ -624,6 +624,23 @@ function sendExamReport({ quiz, correct, totals, percent, passed }) {
   };
 
   localStorage.setItem("patent2026LastReport", JSON.stringify(report));
+
+  const webhookUrl = window.PATENT_APP_CONFIG?.adminWebhookUrl;
+  if (webhookUrl) {
+    try {
+      await fetch(webhookUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "content-type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(report)
+      });
+      $("#sendStatus").textContent = "Отчет отправлен администратору.";
+      return;
+    } catch {
+      $("#sendStatus").textContent = "Не удалось отправить отчет. Он сохранен на устройстве.";
+      return;
+    }
+  }
 
   if (tg?.sendData) {
     tg.sendData(JSON.stringify(report));
