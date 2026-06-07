@@ -208,6 +208,32 @@ h3 {
   gap: 10px;
 }
 
+.variant-section {
+  margin-bottom: 14px;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.variant-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.variant-button {
+  min-height: 44px;
+  padding: 10px 6px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 850;
+}
+
 .module-card {
   display: flex;
   align-items: center;
@@ -280,12 +306,22 @@ h3 {
   position: fixed;
   inset: 0;
   z-index: 10;
-  display: flex;
-  flex-direction: column;
   width: min(100%, 520px);
   margin: 0 auto;
   padding: max(16px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
   background: var(--bg);
+}
+
+.quiz-sheet {
+  display: block;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: calc(104px + env(safe-area-inset-bottom));
+}
+
+.result-sheet {
+  display: flex;
+  flex-direction: column;
 }
 
 .quiz-sheet[hidden],
@@ -294,11 +330,17 @@ h3 {
 }
 
 .quiz-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: grid;
   grid-template-columns: 44px 1fr auto;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
+  margin: calc(-1 * max(16px, env(safe-area-inset-top))) -16px 12px;
+  padding: max(16px, env(safe-area-inset-top)) 16px 12px;
+  background: rgba(238, 243, 241, 0.94);
+  backdrop-filter: blur(10px);
 }
 
 .quiz-header h2 {
@@ -311,6 +353,9 @@ h3 {
 }
 
 .progress-track {
+  position: sticky;
+  top: 74px;
+  z-index: 2;
   height: 8px;
   overflow: hidden;
   border-radius: 999px;
@@ -370,7 +415,13 @@ h3 {
 }
 
 .sticky {
-  margin-top: auto;
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  width: min(calc(100% - 32px), 488px);
+  transform: translateX(-50%);
+  margin: 0 0 max(12px, env(safe-area-inset-bottom));
+  z-index: 3;
 }
 
 .result-sheet {
@@ -421,5 +472,9 @@ h3 {
 
   .summary-strip span {
     font-size: 21px;
+  }
+
+  .variant-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

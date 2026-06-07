@@ -14,6 +14,7 @@ const moduleNames = {
 
 const examShape = { russian: 11, history: 5, law: 6 };
 const passShape = { russian: 6, history: 2, law: 3, total: 11 };
+const variantCount = 20;
 
 const questions = [
   {
@@ -345,8 +346,16 @@ function getModuleQuestions(module) {
   return questions.filter((question) => question.module === module);
 }
 
-function pickExamQuestions() {
-  return Object.entries(examShape).flatMap(([module, amount]) => shuffle(getModuleQuestions(module)).slice(0, amount));
+function rotatePick(items, amount, offset) {
+  return Array.from({ length: amount }, (_, index) => items[(offset + index) % items.length]);
+}
+
+function pickExamQuestions(variantNumber = 1) {
+  return Object.entries(examShape).flatMap(([module, amount], moduleIndex) => {
+    const moduleQuestions = getModuleQuestions(module);
+    const offset = ((variantNumber - 1) * (moduleIndex + 3)) % moduleQuestions.length;
+    return rotatePick(moduleQuestions, amount, offset);
+  });
 }
 
 function showView(view) {
@@ -371,8 +380,19 @@ function renderStats() {
 }
 
 function renderLists() {
+  renderVariants();
   renderQuestionList();
   renderMistakes();
+}
+
+function renderVariants() {
+  const container = $("#variantList");
+  if (!container) return;
+
+  container.innerHTML = Array.from({ length: variantCount }, (_, index) => {
+    const number = index + 1;
+    return `<button class="variant-button" data-variant="${number}" type="button">Вариант ${number}</button>`;
+  }).join("");
 }
 
 function renderQuestionList() {
@@ -547,7 +567,14 @@ function bindEvents() {
     });
   });
 
-  $("#startExam").addEventListener("click", () => startQuiz("exam", shuffle(pickExamQuestions()), "Вариант 2026"));
+  $("#startExam").addEventListener("click", () => startQuiz("exam", pickExamQuestions(1), "Вариант 1"));
+  document.addEventListener("click", (event) => {
+    const variantButton = event.target.closest("[data-variant]");
+    if (variantButton) {
+      const variantNumber = Number(variantButton.dataset.variant);
+      startQuiz("exam", pickExamQuestions(variantNumber), `Вариант ${variantNumber}`);
+    }
+  });
   $$("[data-start-module]").forEach((button) => {
     button.addEventListener("click", () => {
       const module = button.dataset.startModule;
